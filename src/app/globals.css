@@ -24,8 +24,6 @@ body {
   color: var(--text);
   min-height: 100vh;
   min-height: 100dvh;
-  overscroll-behavior: none;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 button {
@@ -36,6 +34,8 @@ button {
   font-size: 14px;
   font-weight: 600;
   transition: all 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled {
@@ -346,6 +346,7 @@ input:focus {
   width: 100%;
   height: 100%;
   max-height: calc(100vh - 200px);
+  touch-action: pan-y pinch-zoom;
 }
 
 .claim-dialog {
@@ -922,52 +923,89 @@ input:focus {
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
   .game-page {
-    min-height: auto;
-    height: 100dvh;
-    overflow: hidden;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .game-layout {
     min-height: auto;
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
   }
 
   .game-main {
     flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
   }
 
   .board-area {
     flex: none;
-    max-height: 30dvh;
-    overflow: hidden;
   }
 
   .board-svg {
-    max-height: 30dvh;
+    max-height: 28dvh;
   }
 
   .controls-area {
     width: 100%;
     border-left: none;
     border-top: 1px solid var(--border);
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   .card-deck {
     border-bottom: 1px solid var(--border);
+    padding: 8px;
+  }
+
+  .card-deck h3 {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .face-up-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .face-up-card {
+    height: 32px;
+    font-size: 11px;
+  }
+
+  .deck-actions {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .draw-deck-btn, .draw-dest-btn {
+    padding: 6px;
+    font-size: 11px;
   }
 
   .player-hand {
     flex: none;
     overflow-y: visible;
     border-top: none;
+    padding: 8px;
+  }
+
+  .player-hand h3 {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .hand-cards {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .hand-card {
+    padding: 4px 8px;
+    min-width: 44px;
+  }
+
+  .card-count {
+    font-size: 16px;
   }
 
   .player-scores {
@@ -976,7 +1014,6 @@ input:focus {
 
   .scoreboard {
     padding: 6px 12px;
-    flex-shrink: 0;
   }
 
   .turn-indicator {
@@ -984,11 +1021,17 @@ input:focus {
     margin-bottom: 4px;
   }
 
+  .claim-dialog {
+    bottom: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
   .destination-overlay {
     width: 100%;
     top: auto;
     bottom: 0;
-    max-height: 50dvh;
+    max-height: 60dvh;
     border-left: none;
     border-top: 2px solid var(--primary);
     animation: slideUp 0.25s ease;
@@ -997,5 +1040,14 @@ input:focus {
   @keyframes slideUp {
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
+  }
+
+  .destination-picker {
+    padding: 16px;
+  }
+
+  .destination-option {
+    padding: 10px 12px;
+    font-size: 13px;
   }
 }
