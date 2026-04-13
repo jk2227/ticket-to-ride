@@ -41,9 +41,18 @@ function buildDeck(cardsPerColor: number, wildCards: number): Card[] {
   return shuffle(deck);
 }
 
+function reshuffleDiscardIfNeeded(state: GameState): void {
+  if (state.transportationDeck.length === 0 && state.discardPile.length > 0) {
+    state.transportationDeck = shuffle(state.discardPile);
+    state.discardPile = [];
+  }
+}
+
 function refillFaceUp(state: GameState): void {
   const variant = getVariant(state.variant);
-  while (state.faceUpCards.length < 5 && state.transportationDeck.length > 0) {
+  while (state.faceUpCards.length < 5) {
+    if (state.transportationDeck.length === 0) reshuffleDiscardIfNeeded(state);
+    if (state.transportationDeck.length === 0) break;
     state.faceUpCards.push(state.transportationDeck.pop()!);
   }
   // If 3+ wilds among face-up, discard all and redraw
@@ -85,6 +94,7 @@ export function createGame(gameId: string, hostId: string, hostName: string, var
     ],
     currentPlayerIndex: 0,
     transportationDeck: [],
+    discardPile: [],
     faceUpCards: [],
     destinationDeck: [],
     routes: config.routes.map((r) => ({ ...r })),
@@ -217,8 +227,9 @@ function handleDrawCard(state: GameState, playerId: string, source: "deck" | num
   if (turnState.cardsDrawn >= 2) return "You've already drawn 2 cards this turn";
 
   if (source === "deck") {
+    if (state.transportationDeck.length === 0) reshuffleDiscardIfNeeded(state);
     if (state.transportationDeck.length === 0) {
-      return "The deck is empty";
+      return "No cards left to draw";
     }
     player.hand.push(state.transportationDeck.pop()!);
     turnState.action = "draw-card";
@@ -302,10 +313,11 @@ function handleClaimRoute(
   }
   // All wilds is fine for any route
 
-  // Remove cards from hand
+  // Remove cards from hand and add to discard pile
   for (const card of cardsUsed) {
     const idx = player.hand.indexOf(card);
     player.hand.splice(idx, 1);
+    state.discardPile.push(card);
   }
 
   // Claim route

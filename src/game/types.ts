@@ -107,6 +107,7 @@ export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
   transportationDeck: Card[];
+  discardPile: Card[];
   faceUpCards: Card[];
   destinationDeck: DestinationTicket[];
   routes: Route[];
