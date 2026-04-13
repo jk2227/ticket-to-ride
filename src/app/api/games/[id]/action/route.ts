@@ -29,6 +29,8 @@ export async function POST(
   }
 
   const state = data.state as GameState;
+  // Backfill for games created before discardPile was added
+  if (!state.discardPile) state.discardPile = [];
   const err = performAction(state, playerId, action);
   if (err) {
     return NextResponse.json({ error: err }, { status: 400 });

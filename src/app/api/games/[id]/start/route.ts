@@ -22,6 +22,7 @@ export async function POST(
   }
 
   const state = data.state as GameState;
+  if (!state.discardPile) state.discardPile = [];
   const err = startGame(state, playerId);
   if (err) {
     return NextResponse.json({ error: err }, { status: 400 });
