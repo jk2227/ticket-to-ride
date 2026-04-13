@@ -96,7 +96,7 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
                 }
               />
               {gameState.myPlayer && (
-                <PlayerHand player={gameState.myPlayer} />
+                <PlayerHand player={gameState.myPlayer} routes={gameState.routes} />
               )}
             </div>
           </div>

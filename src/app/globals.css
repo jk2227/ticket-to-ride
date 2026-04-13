@@ -309,19 +309,25 @@ input:focus {
 .game-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .game-main {
   display: flex;
   flex: 1;
   gap: 0;
+  min-height: 0;
 }
 
 .board-area {
   flex: 1;
   padding: 8px;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .controls-area {
@@ -331,6 +337,7 @@ input:focus {
   flex-direction: column;
   border-left: 1px solid var(--border);
   background: var(--surface);
+  overflow-y: auto;
 }
 
 /* ---- Board ---- */
@@ -342,7 +349,6 @@ input:focus {
 .board-svg {
   width: 100%;
   height: 100%;
-  max-height: calc(100vh - 200px);
 }
 
 .claim-dialog {
@@ -571,6 +577,26 @@ input:focus {
   background: var(--bg);
   border-radius: 6px;
   font-size: 12px;
+  border: 1.5px solid transparent;
+  transition: all 0.3s;
+}
+
+.ticket.completed {
+  border-color: var(--success);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.ticket-route-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ticket-check {
+  color: var(--success);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .ticket-points {
@@ -578,35 +604,47 @@ input:focus {
   color: var(--warning);
 }
 
-/* ---- Destination Picker Overlay ---- */
+.ticket.completed .ticket-points {
+  color: var(--success);
+}
+
+/* ---- Destination Picker Panel ---- */
 .destination-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
   z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 2px solid var(--primary);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.25s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 
 .destination-picker {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 32px;
-  max-width: 420px;
-  width: 90%;
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
   text-align: center;
 }
 
 .destination-picker h2 {
   margin-bottom: 4px;
+  font-size: 18px;
 }
 
 .destination-picker > p {
   color: var(--text-muted);
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .destination-options {
@@ -857,5 +895,20 @@ input:focus {
 
   .player-scores {
     flex-direction: column;
+  }
+
+  .destination-overlay {
+    width: 100%;
+    top: auto;
+    bottom: 0;
+    max-height: 50vh;
+    border-left: none;
+    border-top: 2px solid var(--primary);
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Player, Card } from "@/game/types";
+import { Player, Card, Route, DestinationTicket } from "@/game/types";
 
 const CARD_COLORS: Record<Card, string> = {
   blue: "#3b82f6",
@@ -26,11 +26,44 @@ const CARD_TEXT_COLOR: Record<Card, string> = {
   wild: "#fff",
 };
 
-interface PlayerHandProps {
-  player: Player;
+function isDestinationCompleted(
+  ticket: DestinationTicket,
+  routes: Route[],
+  playerId: string
+): boolean {
+  const playerRoutes = routes.filter((r) => r.claimedBy === playerId);
+  const adjacency: Record<string, string[]> = {};
+
+  for (const route of playerRoutes) {
+    if (!adjacency[route.from]) adjacency[route.from] = [];
+    if (!adjacency[route.to]) adjacency[route.to] = [];
+    adjacency[route.from].push(route.to);
+    adjacency[route.to].push(route.from);
+  }
+
+  const visited = new Set<string>();
+  const queue = [ticket.from];
+  visited.add(ticket.from);
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (current === ticket.to) return true;
+    for (const neighbor of adjacency[current] || []) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+  return false;
 }
 
-export function PlayerHand({ player }: PlayerHandProps) {
+interface PlayerHandProps {
+  player: Player;
+  routes: Route[];
+}
+
+export function PlayerHand({ player, routes }: PlayerHandProps) {
   // Group cards by type
   const cardCounts: Record<string, number> = {};
   for (const card of player.hand) {
@@ -68,14 +101,20 @@ export function PlayerHand({ player }: PlayerHandProps) {
         <div className="destination-tickets">
           <h4>Destinations</h4>
           <div className="ticket-list">
-            {player.destinationTickets.map((ticket) => (
-              <div key={ticket.id} className="ticket">
-                <span className="ticket-route">
-                  {formatLocationName(ticket.from)} → {formatLocationName(ticket.to)}
-                </span>
-                <span className="ticket-points">{ticket.points}pt</span>
-              </div>
-            ))}
+            {player.destinationTickets.map((ticket) => {
+              const completed = isDestinationCompleted(ticket, routes, player.id);
+              return (
+                <div key={ticket.id} className={`ticket ${completed ? "completed" : ""}`}>
+                  <span className="ticket-route-label">
+                    {completed && <span className="ticket-check">&#10003;</span>}
+                    <span className="ticket-route">
+                      {formatLocationName(ticket.from)} → {formatLocationName(ticket.to)}
+                    </span>
+                  </span>
+                  <span className="ticket-points">{ticket.points}pt</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

@@ -64,8 +64,8 @@ export function CardDeck({
                     : card
                 }
               >
-                <span style={{ color: card === "white" || card === "yellow" ? "#333" : "#fff" }}>
-                  {card === "wild" ? "W" : card.charAt(0).toUpperCase()}
+                <span style={{ color: card === "white" || card === "yellow" ? "#333" : "#fff", textTransform: "capitalize" }}>
+                  {card}
                 </span>
               </button>
             );

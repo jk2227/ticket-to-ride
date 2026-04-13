@@ -181,6 +181,18 @@ export function Board({ gameState, playerId, onClaimRoute }: BoardProps) {
               onClick={() => handleRouteClick(route)}
               style={{ cursor: claimable ? "pointer" : "default" }}
             >
+              <title>
+                {locationMap[route.from]?.name} → {locationMap[route.to]?.name} ({route.length} {route.length === 1 ? "card" : "cards"}, {route.color === "wild" ? "any color" : route.color})
+              </title>
+              {/* Invisible wider hit area for hover */}
+              <line
+                x1={path.x1}
+                y1={path.y1}
+                x2={path.x2}
+                y2={path.y2}
+                stroke="transparent"
+                strokeWidth={16}
+              />
               {/* Route line (background) */}
               <line
                 x1={path.x1}
