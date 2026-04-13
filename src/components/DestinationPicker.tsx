@@ -39,21 +39,27 @@ export function DestinationPicker({
     <div className="destination-overlay">
       <div className="destination-picker">
         <h2>Choose Destination Tickets</h2>
-        <p>Keep at least {minKeep} ticket(s)</p>
+        <p>Keep at least {minKeep} ticket(s). Tap to toggle.</p>
 
         <div className="destination-options">
-          {destinations.map((dest) => (
-            <button
-              key={dest.id}
-              className={`destination-option ${selected.has(dest.id) ? "selected" : ""}`}
-              onClick={() => toggle(dest.id)}
-            >
-              <span className="dest-route">
-                {formatLocationName(dest.from)} → {formatLocationName(dest.to)}
-              </span>
-              <span className="dest-points">{dest.points} pts</span>
-            </button>
-          ))}
+          {destinations.map((dest) => {
+            const kept = selected.has(dest.id);
+            return (
+              <button
+                key={dest.id}
+                className={`destination-option ${kept ? "keeping" : "discarding"}`}
+                onClick={() => toggle(dest.id)}
+              >
+                <span className="dest-status-badge">
+                  {kept ? "KEEP" : "DISCARD"}
+                </span>
+                <span className="dest-route">
+                  {formatLocationName(dest.from)} → {formatLocationName(dest.to)}
+                </span>
+                <span className="dest-points">{dest.points} pts</span>
+              </button>
+            );
+          })}
         </div>
 
         <button
