@@ -52,12 +52,15 @@ export function ScoreBoard({ gameState, playerId }: ScoreBoardProps) {
             <span className="score-info">
               <span title="Cards in hand">{player.handCount} cards</span>
               {" | "}
-              <span title="Taxi cabs remaining">{player.taxiCabs} taxis</span>
+              <span title="Taxi cabs remaining" className={player.taxiCabs <= 2 ? "low-taxis" : ""}>{player.taxiCabs} taxis</span>
               {" | "}
               <span title="Destination tickets">{player.destinationTicketCount} dest</span>
             </span>
           </div>
         ))}
+      </div>
+      <div className="end-condition">
+        Game ends when any player has 2 or fewer taxis — everyone else gets one final turn.
       </div>
     </div>
   );

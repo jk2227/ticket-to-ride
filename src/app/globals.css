@@ -476,6 +476,19 @@ input:focus {
   font-size: 12px;
 }
 
+.low-taxis {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.end-condition {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  opacity: 0.7;
+}
+
 /* ---- Card Deck ---- */
 .card-deck {
   padding: 12px;
