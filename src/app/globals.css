@@ -819,8 +819,16 @@ input:focus {
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+  .game-layout {
+    min-height: auto;
+  }
+
   .game-main {
     flex-direction: column;
+  }
+
+  .board-area {
+    flex: none;
   }
 
   .controls-area {
