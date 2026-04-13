@@ -25,12 +25,55 @@ function setPlayerName(name: string): void {
   localStorage.setItem("ttr-player-name", name);
 }
 
+function playTurnSound() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    // Two-tone chime
+    osc.frequency.setValueAtTime(587, ctx.currentTime);      // D5
+    osc.frequency.setValueAtTime(784, ctx.currentTime + 0.15); // G5
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch {
+    // AudioContext not available
+  }
+}
+
+function flashTitle(message: string) {
+  const original = document.title;
+  let on = true;
+  const interval = setInterval(() => {
+    document.title = on ? message : original;
+    on = !on;
+  }, 1000);
+
+  const stop = () => {
+    clearInterval(interval);
+    document.title = original;
+    window.removeEventListener("focus", stop);
+  };
+
+  if (document.hasFocus()) {
+    // If already focused, flash briefly then stop
+    setTimeout(stop, 3000);
+  } else {
+    window.addEventListener("focus", stop);
+  }
+}
+
 export function useGame(gameId: string) {
   const [gameState, setGameState] = useState<ClientGameState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const playerId = useRef(getPlayerId());
   const channelRef = useRef<ReturnType<ReturnType<typeof getSupabase>["channel"]> | null>(null);
+  const wasMyTurn = useRef(false);
 
   const fetchState = useCallback(async () => {
     try {
@@ -84,6 +127,20 @@ export function useGame(gameId: string) {
       channelRef.current = null;
     };
   }, [gameId, fetchState]);
+
+  // Notify when it becomes your turn
+  useEffect(() => {
+    if (!gameState || gameState.phase !== "playing") {
+      wasMyTurn.current = false;
+      return;
+    }
+    const isMyTurn = gameState.players[gameState.currentPlayerIndex]?.id === playerId.current;
+    if (isMyTurn && !wasMyTurn.current) {
+      playTurnSound();
+      flashTitle("Your turn!");
+    }
+    wasMyTurn.current = isMyTurn;
+  }, [gameState]);
 
   const joinGame = useCallback(
     async (name: string) => {
