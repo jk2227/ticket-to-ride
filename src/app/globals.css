@@ -23,6 +23,9 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 button {
@@ -918,26 +921,43 @@ input:focus {
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+  .game-page {
+    min-height: auto;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
   .game-layout {
     min-height: auto;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
   }
 
   .game-main {
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .board-area {
     flex: none;
+    max-height: 30dvh;
+    overflow: hidden;
   }
 
   .board-svg {
-    max-height: 38vh;
+    max-height: 30dvh;
   }
 
   .controls-area {
     width: 100%;
     border-left: none;
     border-top: 1px solid var(--border);
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .card-deck {
@@ -956,6 +976,7 @@ input:focus {
 
   .scoreboard {
     padding: 6px 12px;
+    flex-shrink: 0;
   }
 
   .turn-indicator {
@@ -967,7 +988,7 @@ input:focus {
     width: 100%;
     top: auto;
     bottom: 0;
-    max-height: 50vh;
+    max-height: 50dvh;
     border-left: none;
     border-top: 2px solid var(--primary);
     animation: slideUp 0.25s ease;
