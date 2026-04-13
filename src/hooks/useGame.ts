@@ -6,11 +6,26 @@ import { ClientGameState, GameAction } from "@/game/types";
 
 const POLL_INTERVAL = 2000;
 
+function generateId(): string {
+  // crypto.randomUUID() requires a secure context (HTTPS or localhost).
+  // When accessed over HTTP from a phone on the local network, it's unavailable.
+  try {
+    return crypto.randomUUID();
+  } catch {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+}
+
 function getPlayerId(): string {
   if (typeof window === "undefined") return "";
   let id = localStorage.getItem("ttr-player-id");
   if (!id) {
-    id = crypto.randomUUID();
+    id = generateId();
     localStorage.setItem("ttr-player-id", id);
   }
   return id;
