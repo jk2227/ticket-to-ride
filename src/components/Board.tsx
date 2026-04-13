@@ -13,7 +13,7 @@ const ROUTE_COLOR_MAP: Record<string, string> = {
   black: "#374151",
   white: "#e5e7eb",
   yellow: "#eab308",
-  wild: "#8b5cf6",
+  wild: "#9ca3af",
 };
 
 const PLAYER_COLOR_MAP: Record<string, string> = {
@@ -32,6 +32,7 @@ interface BoardProps {
 export function Board({ gameState, playerId, onClaimRoute }: BoardProps) {
   const [selectedRoute, setSelectedRoute] = useState<number | null>(null);
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+  const [chosenColor, setChosenColor] = useState<Card | null>(null);
   const locations = newYorkVariant.locations;
 
   const locationMap = Object.fromEntries(locations.map((l) => [l.id, l]));
@@ -45,53 +46,77 @@ export function Board({ gameState, playerId, onClaimRoute }: BoardProps) {
       // Deselect
       setSelectedRoute(null);
       setSelectedCards([]);
+      setChosenColor(null);
       return;
     }
 
     setSelectedRoute(route.id);
     setSelectedCards([]);
+    setChosenColor(null);
+  };
+
+  // Get colors that can pay for a wild route
+  const getPlayableColors = (route: Route): Card[] => {
+    if (!myPlayer || route.color !== "wild") return [];
+    const hand = myPlayer.hand;
+    const needed = route.length;
+    const colorCounts: Record<string, number> = {};
+    let wildCount = 0;
+    for (const card of hand) {
+      if (card === "wild") wildCount++;
+      else colorCounts[card] = (colorCounts[card] || 0) + 1;
+    }
+    const playable: Card[] = [];
+    for (const [color, count] of Object.entries(colorCounts)) {
+      if (count + wildCount >= needed) playable.push(color as Card);
+    }
+    if (wildCount >= needed) playable.push("wild");
+    return playable;
+  };
+
+  const buildCards = (route: Route, color: Card): Card[] | null => {
+    if (!myPlayer) return null;
+    const hand = myPlayer.hand;
+    const needed = route.length;
+
+    if (color === "wild") {
+      const wildCount = hand.filter((c) => c === "wild").length;
+      if (wildCount >= needed) return Array(needed).fill("wild");
+      return null;
+    }
+
+    const colorCount = hand.filter((c) => c === color).length;
+    const wildCount = hand.filter((c) => c === "wild").length;
+    if (colorCount + wildCount < needed) return null;
+
+    const cards: Card[] = [];
+    const colorNeeded = Math.min(colorCount, needed);
+    for (let i = 0; i < colorNeeded; i++) cards.push(color);
+    for (let i = 0; i < needed - colorNeeded; i++) cards.push("wild");
+    return cards;
   };
 
   const autoSelectCards = (route: Route): Card[] | null => {
     if (!myPlayer) return null;
-    const hand = [...myPlayer.hand];
     const needed = route.length;
 
     if (route.color === "wild") {
-      // Any single color + wilds
+      // Check if any color works (for canClaim)
+      const hand = myPlayer.hand;
       const colorCounts: Record<string, number> = {};
       let wildCount = 0;
       for (const card of hand) {
         if (card === "wild") wildCount++;
         else colorCounts[card] = (colorCounts[card] || 0) + 1;
       }
-      // Try each color
       for (const [color, count] of Object.entries(colorCounts)) {
-        if (count + wildCount >= needed) {
-          const cards: Card[] = [];
-          const colorNeeded = Math.min(count, needed);
-          for (let i = 0; i < colorNeeded; i++) cards.push(color as Card);
-          for (let i = 0; i < needed - colorNeeded; i++) cards.push("wild");
-          return cards;
-        }
+        if (count + wildCount >= needed) return buildCards(route, color as Card);
       }
-      // All wilds
-      if (wildCount >= needed) {
-        return Array(needed).fill("wild");
-      }
+      if (wildCount >= needed) return Array(needed).fill("wild");
       return null;
     }
 
-    // Specific color route
-    const colorCount = hand.filter((c) => c === route.color).length;
-    const wildCount = hand.filter((c) => c === "wild").length;
-    if (colorCount + wildCount < needed) return null;
-
-    const cards: Card[] = [];
-    const colorNeeded = Math.min(colorCount, needed);
-    for (let i = 0; i < colorNeeded; i++) cards.push(route.color);
-    for (let i = 0; i < needed - colorNeeded; i++) cards.push("wild");
-    return cards;
+    return buildCards(route, route.color);
   };
 
   const confirmClaim = () => {
@@ -99,11 +124,14 @@ export function Board({ gameState, playerId, onClaimRoute }: BoardProps) {
     const route = gameState.routes.find((r) => r.id === selectedRoute);
     if (!route) return;
 
-    const cards = autoSelectCards(route);
+    const cards = route.color === "wild" && chosenColor
+      ? buildCards(route, chosenColor)
+      : autoSelectCards(route);
     if (!cards) return;
     onClaimRoute(route.id, cards);
     setSelectedRoute(null);
     setSelectedCards([]);
+    setChosenColor(null);
   };
 
   const canClaim = (route: Route): boolean => {
@@ -229,6 +257,7 @@ export function Board({ gameState, playerId, onClaimRoute }: BoardProps) {
                       : ROUTE_COLOR_MAP[route.color] || "#666"
                   }
                   strokeWidth={isSelected ? 2.5 : 1.5}
+                  strokeDasharray={!isClaimed && route.color === "wild" ? "4 2" : undefined}
                   opacity={isClaimed ? 0.9 : claimable ? 0.8 : 0.4}
                 />
               ))}
@@ -269,12 +298,35 @@ export function Board({ gameState, playerId, onClaimRoute }: BoardProps) {
             {locationMap[selectedRouteObj.to]?.name} ({selectedRouteObj.length}{" "}
             cards)
           </p>
+          {selectedRouteObj.color === "wild" && (
+            <div className="color-picker">
+              <p className="color-picker-label">Choose a color to play:</p>
+              <div className="color-options">
+                {getPlayableColors(selectedRouteObj).map((color) => (
+                  <button
+                    key={color}
+                    className={`color-option ${chosenColor === color ? "selected" : ""}`}
+                    style={{ background: ROUTE_COLOR_MAP[color] || "#666" }}
+                    onClick={() => setChosenColor(color)}
+                  >
+                    <span style={{ color: color === "white" || color === "yellow" ? "#333" : "#fff", textTransform: "capitalize" }}>
+                      {color}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="claim-actions">
-            <button onClick={confirmClaim} className="claim-btn">
+            <button
+              onClick={confirmClaim}
+              className="claim-btn"
+              disabled={selectedRouteObj.color === "wild" && !chosenColor}
+            >
               Claim Route
             </button>
             <button
-              onClick={() => setSelectedRoute(null)}
+              onClick={() => { setSelectedRoute(null); setChosenColor(null); }}
               className="cancel-btn"
             >
               Cancel
